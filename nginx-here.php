@@ -32,7 +32,7 @@ $conf = <<<CONF
 server {
     root $dir;
     index index.php index.html index.htm;
-    ;error_log $dir/nginx-error.log error;
+    #error_log $dir/nginx-error.log error;
 
     charset        utf-8;
 
