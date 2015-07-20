@@ -77,11 +77,11 @@ if ('install' === $action) {
     _system("ln -s $confFileName $confEnabledFileName");
     _system("nginx -s reload");
 
-    exec("ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'", $hosts);
+    exec("ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\\.){3}[0-9]*).*/\\2/p'", $hosts);
     if ($hosts) {
         echo 'Try to find your vhosts at: ' . PHP_EOL;
         foreach ($hosts as $host) {
-            echo CLIColoredString::get(' http://' . $dirName . '.' . $host, CLIColoredString::FG_BROWN) . PHP_EOL;
+            echo CLIColoredString::get(' http://' . $dirName . '.' . $host . '.xip.io/', CLIColoredString::FG_BROWN) . PHP_EOL;
         }
     }
 }
