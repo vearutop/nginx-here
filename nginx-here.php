@@ -19,7 +19,7 @@ if ('help' === $action) {
     exit();
 }
 
-if ('self-install') {
+if ('self-install' === $action) {
     echo "Copying script to /usr/local/bin/nginx-here" . PHP_EOL;
     _system('cp ' . __FILE__ . ' /usr/local/bin/nginx-here');
     exit;
