@@ -60,10 +60,10 @@ if ('show' === $action || 'install' === $action) {
 }
 
 if ('install' === $action) {
-    $confFileName = '/etc/nginx/sites-available/' . $dir . '.conf';
+    $confFileName = '/etc/nginx/sites-available/' . $dirName . '.conf';
     echo "Storing nginx conf file to $confFileName\n";
     file_put_contents($confFileName, $conf);
-    $confEnabledFileName = '/etc/nginx/sites-enabled/' . $dir . '.conf';
+    $confEnabledFileName = '/etc/nginx/sites-enabled/' . $dirName . '.conf';
     echo "Creating symlink at $confEnabledFileName\n";
     _system("ln -s $confFileName $confEnabledFileName");
     _system("nginx -s reload");
