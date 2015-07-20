@@ -37,7 +37,7 @@ server {
     charset        utf-8;
 
     # Make site accessible from http://localhost/
-    server_name $dir.*;
+    server_name $dirName.*;
 
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
