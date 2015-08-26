@@ -2,6 +2,7 @@
 <?php
 
 $action = isset($_SERVER['argv'][1]) ? $_SERVER['argv'][1] : 'help';
+$vhost = isset($_SERVER['argv'][2]) ? $_SERVER['argv'][2] : null;
 
 if (!in_array($action, array('show', 'self-install', 'install', 'uninstall', 'help'))) {
     $action = 'help';
@@ -22,39 +23,48 @@ if ('help' === $action) {
 }
 
 if ('self-install' === $action) {
-    echo "Copying script to /usr/local/bin/nginx-here" . PHP_EOL;
-    _system('cp ' . __FILE__ . ' /usr/local/bin/nginx-here');
+    echo "Linking script to /usr/local/bin/nginx-here" . PHP_EOL;
+    _system('ln -s ' . __FILE__ . ' /usr/local/bin/nginx-here');
     exit;
 }
 
 $dir = getcwd();
 $dirName = basename($dir);
 
-$conf = <<<CONF
-server {
-    root $dir;
-    index index.php index.html index.htm;
-    #error_log $dir/nginx-error.log error;
+if (null === $vhost) {
+    $vhost = $dirName;
+}
 
-    charset        utf-8;
+$types = array(
+    'osx-brew' => '/usr/local/etc/nginx/servers/',
+    'sites-enabled' => '/etc/nginx/sites-enabled/',
+);
 
-    # Make site accessible from http://localhost/
-    server_name $dirName.*;
 
-    location / {
-        try_files \$uri \$uri/ /index.php?\$query_string;
-    }
-
-    location ~ \.php$ {
-        fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        #fastcgi_pass unix:/var/run/php5-fpm.sock;
-        fastcgi_pass 127.0.0.1:9000;
-        fastcgi_index index.php;
-        include fastcgi_params;
+$confDir = null;
+$type = null;
+$found = false;
+foreach ($types as $type => $confDir) {
+    if (file_exists($confDir)) {
+        $found = true;
+        break;
     }
 }
 
-CONF;
+$port = 80;
+if ('osx-brew' === $type) {
+    $port = 8080;
+}
+
+
+if (!$found) {
+    die('Unknown setup');
+}
+
+ob_start();
+include __DIR__ . '/nginx.' . $type . '.conf.php';
+$conf = ob_get_clean();
+
 
 if ('show' === $action || 'install' === $action) {
     echo "Nginx config for current directory: \n";
@@ -62,26 +72,23 @@ if ('show' === $action || 'install' === $action) {
 }
 
 if ('remove' === $action) {
-    $confFileName = '/etc/nginx/sites-available/' . $dirName . '.conf';
-    $confEnabledFileName = '/etc/nginx/sites-enabled/' . $dirName . '.conf';
-    _system("rm $confFileName $confEnabledFileName");
+    $confFileName = $confDir . $vhost . '.conf';
+    _system("rm $confFileName");
     _system("nginx -s reload");
 }
 
 if ('install' === $action) {
-    $confFileName = '/etc/nginx/sites-available/' . $dirName . '.conf';
+    $confFileName = $confDir . $vhost . '.conf';
     echo "Storing nginx conf file to $confFileName\n";
     file_put_contents($confFileName, $conf);
-    $confEnabledFileName = '/etc/nginx/sites-enabled/' . $dirName . '.conf';
-    echo "Creating symlink at $confEnabledFileName\n";
-    _system("ln -s $confFileName $confEnabledFileName");
     _system("nginx -s reload");
 
-    exec("ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\\.){3}[0-9]*).*/\\2/p'", $hosts);
+    exec("ifconfig | sed -En 's/.*inet (addr:)?(([0-9]*\\.){3}[0-9]*).*/\\2/p'", $hosts);
     if ($hosts) {
         echo 'Try to find your vhosts at: ' . PHP_EOL;
         foreach ($hosts as $host) {
-            echo CLIColoredString::get(' http://' . $dirName . '.' . $host . '.xip.io/', CLIColoredString::FG_BROWN) . PHP_EOL;
+            echo CLIColoredString::get(' http://' . $vhost . '.' . $host . '.xip.io'.($port === 80 ? '' : ':' . $port)
+                    .'/', CLIColoredString::FG_BROWN) . PHP_EOL;
         }
     }
 }
