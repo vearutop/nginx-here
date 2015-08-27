@@ -38,6 +38,7 @@ if (null === $vhost) {
 $types = array(
     'osx-brew' => '/usr/local/etc/nginx/servers/',
     'sites-enabled' => '/etc/nginx/sites-enabled/',
+    'conf.d' => '/etc/nginx/conf.d/'
 );
 
 
