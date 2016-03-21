@@ -1,5 +1,4 @@
 server {
-    listen 8080;
     root <?=$dir?>;
     index index.php index.html index.htm;
     error_log <?=$dir?>/nginx-error.log error;
@@ -13,10 +12,8 @@ server {
     }
 
     location ~ \.php$ {
-        fastcgi_intercept_errors on;
-        fastcgi_pass   <?=$fastcgiPass?>;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include /usr/local/etc/nginx/fastcgi_params;
+        fastcgi_pass <?=$fastcgiPass?>;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        include snippets/fastcgi-php.conf;
     }
 }

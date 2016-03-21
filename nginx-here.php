@@ -37,10 +37,16 @@ if (null === $vhost) {
 
 $types = array(
     'osx-brew' => '/usr/local/etc/nginx/servers/',
+    'snippets' => '/etc/nginx/snippets/fastcgi-php.conf',
     'sites-enabled' => '/etc/nginx/sites-enabled/',
     'conf.d' => '/etc/nginx/conf.d/'
 );
 
+
+$fastcgiPass = '127.0.0.1:9000';
+if (file_exists('/var/run/php5-fpm.sock')) {
+    $fastcgiPass = 'unix:/var/run/php5-fpm.sock';
+}
 
 $confDir = null;
 $type = null;
@@ -50,6 +56,10 @@ foreach ($types as $type => $confDir) {
         $found = true;
         break;
     }
+}
+
+if ($type === 'snippets') {
+    $confDir = $types['sites-enabled'];
 }
 
 $port = 80;
@@ -81,7 +91,7 @@ if ('remove' === $action) {
 if ('install' === $action) {
     $confFileName = $confDir . $vhost . '.conf';
     echo "Storing nginx conf file to $confFileName\n";
-    file_put_contents($confFileName, $conf);
+    var_dump(file_put_contents($confFileName, $conf));
     _system("nginx -s reload");
 
     exec("ifconfig | sed -En 's/.*inet (addr:)?(([0-9]*\\.){3}[0-9]*).*/\\2/p'", $hosts);
